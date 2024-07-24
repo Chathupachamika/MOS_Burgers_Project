@@ -29,28 +29,7 @@
             </div>
         </div>
         <div class="row mt-4">
-            <div class="col-md-6">
-                <h3>Add New Item</h3>
-                <form id="addItemForm">
-                    <div class="form-group">
-                        <label for="addItemCode">Item Code</label>
-                        <input type="text" class="form-control" id="addItemCode" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addItemName">Item Name</label>
-                        <input type="text" class="form-control" id="addItemName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addItemPrice">Price (LKR)</label>
-                        <input type="number" class="form-control" id="addItemPrice" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addItemDiscount">Discount (%)</label>
-                        <input type="number" class="form-control" id="addItemDiscount" value="0">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Item</button>
-                </form>
-            </div>
+
             <div class="col-md-6">
                 <h3>Customer Details</h3>
                 <form id="customerDetailsForm">
@@ -86,11 +65,15 @@
                       <input type="text" class="form-control" id="billItemPrice" readonly>
                   </div>
                   <div class="form-group">
-                      <label for="billItemDiscount">Discount (%)</label>
-                      <input type="text" class="form-control" id="billItemDiscount" readonly>
+                      <label for="billItemQty">Qty</label>
+                      <input type="text" class="form-control" id="billItemQty" required>
                   </div>
+                  <div class="form-group">
+                    <label for="billItemDiscount">Discount (%)</label>
+                    <input type="text" class="form-control" id="billItemDiscount" readonly>
+                </div>
                   <button type="button" class="btn btn-primary" onclick="addItemToBill()">Add Item to Bill</button>
-                  <button type="button" class="btn btn-success" onclick="generateAndSendInvoice()">Generate Invoice</button>
+                  <button type="button" class="btn btn-success" onclick="removeItem()">Remove Item</button>
               </form>
               
               <!-- Bill Summary Section -->
@@ -99,20 +82,21 @@
                       <h3>Bill Summary</h3>
                       <!-- Display bill summary here -->
                       <div id="billSummary">
-                          <table class="table table-bordered">
-                              <thead class="thead-dark">
-                                  <tr>
-                                      <th>Item Name</th>
-                                      <th>Price (LKR)</th>
-                                      <th>Discount (%)</th>
-                                      <th>Action</th>
-                                  </tr>
-                              </thead>
-                              <tbody id="billItemsTable">
-                                  <!-- Bill items will be dynamically inserted here -->
-                              </tbody>
-                          </table>
-                      </div>
+                        <table class="table table-bordered">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Price (LKR)</th>
+                                    <th>Qty</th>
+                                    <th>Discount (%)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billItemsTable">
+                                <!-- Bill items will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
                   </div>
               </div>
               
@@ -130,9 +114,6 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

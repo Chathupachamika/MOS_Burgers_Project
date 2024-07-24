@@ -52,574 +52,145 @@ let menuItems = [
     { code: 'B1046', name: 'Sprite (330ml)', price: 1500.00, discount: '3%' },
     { code: 'B1047', name: 'Mirinda (330ml)', price: 850.00, discount: '7%' }
 ];
+// Store customer details
+let customerDetails = {};
 
-// Function to populate the menu on page load
-function populateMenu() {
-    const tableBody = document.getElementById('menuTable');
-    tableBody.innerHTML = ''; // Clear existing table content
+// Store bill items
+let billItems = [];
 
-    // Iterate through menuItems array and append rows to the table
-    menuItems.forEach(item => {
-        const discount = item.discount !== '-' ? `${item.discount}` : '-';
-        tableBody.insertAdjacentHTML('beforeend',
-            `<tr>
-                <td>${item.code}</td>
-                <td>${item.name}</td>
-                <td>${item.price.toFixed(2)}</td>
-                <td>${discount}</td>
-            </tr>`
-        );
-    });
-}
-
-// Function to handle form submission for adding a new item
-function handleAddItemFormSubmit(event) {
-    event.preventDefault();
-
-    // Get form values
-    const itemCode = document.getElementById('itemCode').value.trim();
-    const itemName = document.getElementById('itemName').value.trim();
-    const itemPrice = parseFloat(document.getElementById('itemPrice').value);
-    const itemDiscount = document.getElementById('itemDiscount').value.trim();
-
-    // Validate input
-    if (!itemCode || !itemName || isNaN(itemPrice)) {
-        alert('Please fill out all fields correctly.');
-        return;
-    }
-
-    // Create new item object
-    const newItem = {
-        code: itemCode,
-        name: itemName,
-        price: itemPrice,
-        discount: itemDiscount === '' ? '-' : `${itemDiscount}%`
-    };
-
-    // Add new item to menuItems array
-    menuItems.push(newItem);
-
-    // Clear form fields
-    document.getElementById('addItemForm').reset();
-
-    // Update the menu display
-    populateMenu();
-}
-
-// Function to handle order submission
-function handleOrderSubmission(event) {
-    event.preventDefault();
-
-    // Get customer details
-    const customerName = document.getElementById('customerName').value.trim();
-    const customerPhone = document.getElementById('customerPhone').value.trim();
-
-    // Validate customer details
-    if (!customerName || !customerPhone) {
-        alert('Please enter customer name and phone number.');
-        return;
-    }
-
-    // Create new order object
-    const order = {
-        orderID: generateOrderID(), // Generate a unique order ID (you can implement this function)
-        customer: {
-            name: customerName,
-            phone: customerPhone
-        },
-        items: cartItems,
-        orderTotal: calculateOrderTotal(),
-        orderDiscount: parseFloat(document.getElementById('orderDiscount').value) || 0,
-        orderDate: new Date().toLocaleString() // Store order date/time
-    };
-
-    // Clear cartItems array after order submission
-    cartItems = [];
-
-    // Add order to orders array (if you're storing orders in memory)
-    orders.push(order);
-
-    // Display a confirmation message or update UI as needed
-    alert('Order placed successfully!');
-
-    // Optionally, generate PDF receipt
-    generatePDFReceipt(order);
-
-    // Clear form fields and update UI
-    document.getElementById('orderForm').reset();
-    updateCartDisplay();
-}
-
-// Function to generate a PDF receipt for an order
-function generatePDFReceipt(order) {
-    // Example code using jsPDF library (include jsPDF in your project)
-    const doc = new jsPDF();
-
-    // Header
-    doc.text('MOS Burgers Receipt', 20, 20);
-    doc.text(`Order ID: ${order.orderID}`, 20, 30);
-    doc.text(`Date: ${order.orderDate}`, 20, 40);
-    doc.text(`Customer Name: ${order.customer.name}`, 20, 50);
-    doc.text(`Customer Phone: ${order.customer.phone}`, 20, 60);
-
-    // Items
-    let y = 70;
-    order.items.forEach((item, index) => {
-        const itemString = `${item.name} - ${item.quantity} x ${item.price.toFixed(2)} LKR`;
-        doc.text(itemString, 20, y);
-        y += 10;
-    });
-
-    // Total
-    doc.text(`Order Total: ${order.orderTotal.toFixed(2)} LKR`, 20, y + 10);
-
-    // Save PDF
-    doc.save(`receipt_${order.orderID}.pdf`);
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Populate menu initially
-    populateMenu();
-
-    // Add event listener for addItemForm submission
-    document.getElementById('addItemForm').addEventListener('submit', handleAddItemFormSubmit);
-
-    // Add event listener for orderForm submission
-    document.getElementById('orderForm').addEventListener('submit', handleOrderSubmission);
-});
-
-// Utility functions (example)
-function calculateOrderTotal() {
-    // Implement logic to calculate order total based on cartItems
-    let total = 0;
-    cartItems.forEach(item => {
-        total += item.price * item.quantity;
-    });
-    return total;
-}
-
-function updateCartDisplay() {
-    // Implement logic to update the UI to display cart items
-    // This function can update the cart display in the UI
-}
-
-// Define global variables for customer and bill details
-let customerDetails = {
-    name: '',
-    email: '',
-    phone: ''
-};
-
-let billItems = []; // Array to store items in the bill
-
-// Function to handle adding an item to the bill
-function handleAddItemToBill(event) {
-    event.preventDefault();
-
-    // Get item code entered by the user
-    const itemCode = document.getElementById('itemCode').value.trim();
-
-    // Find the item in menuItems based on item code
-    const selectedItem = menuItems.find(item => item.code === itemCode);
-
-    if (!selectedItem) {
-        alert('Item not found. Please enter a valid item code.');
-        return;
-    }
-
-    // Add the selected item to the billItems array
-    billItems.push(selectedItem);
-
-    // Clear the item code input field
-    document.getElementById('itemCode').value = '';
-
-    // Update the display of items in the bill (optional step)
-    updateBillDisplay();
-
-    // Calculate and display invoice totals
-    calculateAndDisplayInvoice();
-}
-
-// Function to update the display of items in the bill (optional step)
-function updateBillDisplay() {
-    // Implement UI update to display items in the bill (if needed)
-}
-
-// Function to calculate and display invoice totals
-function calculateAndDisplayInvoice() {
-    // Calculate subtotal, discount, and total based on billItems array
-    let subtotal = 0;
-    let totalDiscount = 0;
-
-    billItems.forEach(item => {
-        subtotal += item.price;
-        if (item.discount !== '-') {
-            // Calculate discount amount
-            const discountPercent = parseFloat(item.discount.replace('%', ''));
-            totalDiscount += (item.price * discountPercent) / 100;
-        }
-    });
-
-    const total = subtotal - totalDiscount;
-
-    // Display invoice totals in the UI (replace this with your own UI update logic)
-    document.getElementById('subtotalDisplay').innerText = subtotal.toFixed(2);
-    document.getElementById('totalDiscountDisplay').innerText = totalDiscount.toFixed(2);
-    document.getElementById('totalDisplay').innerText = total.toFixed(2);
-}
-
-// Function to generate a PDF invoice and send it to customer's email
-function generateAndSendInvoice() {
-    // Generate PDF using jsPDF library
-    const doc = new jsPDF();
-    // Customize and create the invoice layout
-    // Example:
-    doc.text(`Invoice for ${customerDetails.name}`, 20, 20);
-    // Add items and totals to the PDF
-    doc.save(`invoice_${customerDetails.name}.pdf`);
-
-    // Send the PDF invoice to customer's email (implement email sending logic)
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Example: Add event listener for adding item to bill
-    document.getElementById('addItemToBillForm').addEventListener('submit', handleAddItemToBill);
-});
-
-
-
-// Function to populate the menu on page load
-function populateMenu() {
-    const tableBody = document.getElementById('menuTable');
-    tableBody.innerHTML = ''; // Clear existing table content
-
-    // Iterate through menuItems array and append rows to the table
-    menuItems.forEach(item => {
-        const discount = item.discount !== '-' ? `${item.discount}` : '-';
-        tableBody.insertAdjacentHTML('beforeend',
-            `<tr>
-                <td>${item.code}</td>
-                <td>${item.name}</td>
-                <td>${item.price.toFixed(2)}</td>
-                <td>${discount}</td>
-            </tr>`
-        );
-    });
-}
-
-// Function to handle adding an item to the bill
-function handleAddItemToBill(event) {
-    event.preventDefault();
-
-    // Get item code entered by the user
-    const itemCode = document.getElementById('billItemCode').value.trim();
-
-    // Find the item in menuItems based on item code
-    const selectedItem = menuItems.find(item => item.code === itemCode);
-
-    if (!selectedItem) {
-        alert('Item not found. Please enter a valid item code.');
-        return;
-    }
-
-    // Add the selected item to the billItems array
-    billItems.push(selectedItem);
-
-    // Clear the item code input field
-    document.getElementById('billItemCode').value = '';
-
-    // Update the display of items in the bill (optional step)
-    updateBillDisplay();
-
-    // Calculate and display invoice totals
-    calculateAndDisplayInvoice();
-}
-
-// Function to update the display of items in the bill (optional step)
-function updateBillDisplay() {
-    // Implement UI update to display items in the bill (if needed)
-}
-
-// Function to calculate and display invoice totals
-function calculateAndDisplayInvoice() {
-    // Calculate subtotal, discount, and total based on billItems array
-    let subtotal = 0;
-    let totalDiscount = 0;
-
-    billItems.forEach(item => {
-        subtotal += item.price;
-        if (item.discount !== '-') {
-            // Calculate discount amount
-            const discountPercent = parseFloat(item.discount.replace('%', ''));
-            totalDiscount += (item.price * discountPercent) / 100;
-        }
-    });
-
-    const total = subtotal - totalDiscount;
-
-    // Display invoice totals in the UI (replace this with your own UI update logic)
-    document.getElementById('subtotalDisplay').innerText = subtotal.toFixed(2);
-    document.getElementById('totalDiscountDisplay').innerText = totalDiscount.toFixed(2);
-    document.getElementById('totalDisplay').innerText = total.toFixed(2);
-}
-
-// Function to generate a PDF invoice and send it to customer's email
-function generateAndSendInvoice() {
-    // Generate PDF using jsPDF library
-    const doc = new jsPDF();
-    // Customize and create the invoice layout
-    // Example:
-    doc.text(`Invoice for ${customerDetails.name}`, 20, 20);
-    // Add items and totals to the PDF
-    doc.save(`invoice_${customerDetails.name}.pdf`);
-
-    // Send the PDF invoice to customer's email (implement email sending logic)
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Populate menu initially
-    populateMenu();
-
-    // Add event listener for adding item to bill
-    document.getElementById('addItemToBillForm').addEventListener('submit', handleAddItemToBill);
-});
-// Define global variable to store items in the bill
-
-
-// Function to handle adding an item to the bill
+// Function to add item to bill
 function addItemToBill() {
-    // Get item code entered by the user
-    const itemCode = document.getElementById('billItemCode').value.trim();
+    const itemCode = document.getElementById('billItemCode').value;
+    const itemQty = parseInt(document.getElementById('billItemQty').value);
 
-    // Find the item in menuItems based on item code
-    const selectedItem = menuItems.find(item => item.code === itemCode);
+    const menuItem = menuItems.find(item => item.code === itemCode);
 
-    if (!selectedItem) {
-        alert('Item not found. Please enter a valid item code.');
-        return;
+    if (menuItem && itemQty > 0) {
+        // Check if item is already in bill
+        const existingItem = billItems.find(item => item.code === itemCode);
+        if (existingItem) {
+            existingItem.qty += itemQty;
+        } else {
+            billItems.push({
+                ...menuItem,
+                qty: itemQty
+            });
+        }
+
+        // Update bill summary table
+        updateBillSummary();
+    } else {
+        alert('Invalid item code or quantity.');
     }
-
-    // Add the selected item to the billItems array
-    billItems.push(selectedItem);
-
-    // Clear the item code input field
-    document.getElementById('billItemCode').value = '';
-
-    // Update the display of items in the bill
-    updateBillDisplay();
-
-    // Calculate and display invoice totals
-    calculateAndDisplayInvoice();
 }
 
-// Function to update the display of items in the bill
-function updateBillDisplay() {
-    const tableBody = document.getElementById('billItemsTable');
-    tableBody.innerHTML = ''; // Clear existing table content
+// Function to remove item from bill
+function removeItem() {
+    const itemCode = document.getElementById('billItemCode').value;
+    billItems = billItems.filter(item => item.code !== itemCode);
 
-    // Iterate through billItems array and append rows to the table
+    // Update bill summary table
+    updateBillSummary();
+}
+
+// Function to update bill summary table
+function updateBillSummary() {
+    const billItemsTable = document.getElementById('billItemsTable');
+    billItemsTable.innerHTML = '';
+
+    let subtotal = 0;
+    let totalDiscount = 0;
+
     billItems.forEach(item => {
-        const discount = item.discount !== '-' ? item.discount : '0%';
-        tableBody.insertAdjacentHTML('beforeend',
-            `<tr>
-                <td>${item.name}</td>
-                <td>${item.price.toFixed(2)}</td>
-                <td>${discount}</td>
-                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem('${item.code}')">Remove</button></td>
-            </tr>`
-        );
+        const itemTotal = item.price * item.qty;
+        let itemDiscount = 0;
+        
+        if (item.discount !== '-') {
+            const discountPercent = parseFloat(item.discount.replace('%', ''));
+            itemDiscount = (itemTotal * discountPercent) / 100;
+        }
+
+        subtotal += itemTotal;
+        totalDiscount += itemDiscount;
+
+        const row = `<tr>
+            <td>${item.name}</td>
+            <td>${item.price.toFixed(2)}</td>
+            <td>${item.qty}</td>
+            <td>${item.discount}</td>
+              </tr>`;
+        billItemsTable.innerHTML += row;
     });
+
+    const total = subtotal - totalDiscount;
+
+    document.getElementById('subtotalDisplay').innerText = subtotal.toFixed(2);
+    document.getElementById('totalDiscountDisplay').innerText = totalDiscount.toFixed(2);
+    document.getElementById('totalDisplay').innerText = total.toFixed(2);
 }
 
-// Function to remove an item from the billItems array
+// Adjust the removeItem function to accept the item code and remove the correct item
 function removeItem(itemCode) {
     billItems = billItems.filter(item => item.code !== itemCode);
-    updateBillDisplay();
-    calculateAndDisplayInvoice();
+    updateBillSummary();
 }
 
-// Function to calculate and display invoice totals
-function calculateAndDisplayInvoice() {
-    // Calculate subtotal, discount, and total based on billItems array
-    let subtotal = 0;
-    let totalDiscount = 0;
+// Function to handle Print Bill button click
+document.getElementById('displayBill').addEventListener('click', () => {
+    const customerName = document.getElementById('customerName').value;
+    const customerEmail = document.getElementById('customerEmail').value;
+    const customerPhone = document.getElementById('customerPhone').value;
 
+    if (!customerName || !customerEmail || !customerPhone) {
+        alert('Please enter all customer details.');
+        return;
+    }
+
+    const date = new Date();
+    const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+
+    let billDetails = `Customer Name: ${customerName}\nEmail: ${customerEmail}\nPhone: ${customerPhone}\nDate: ${formattedDate}\n\n`;
+    billDetails += `Items:\n`;
     billItems.forEach(item => {
-        subtotal += item.price;
-        if (item.discount !== '-') {
-            // Calculate discount amount
-            const discountPercent = parseFloat(item.discount.replace('%', ''));
-            totalDiscount += (item.price * discountPercent) / 100;
-        }
+        billDetails += `${item.name} - ${item.price} LKR x ${item.qty} (${item.discount})\n`;
     });
 
-    const total = subtotal - totalDiscount;
+    const subtotal = parseFloat(document.getElementById('subtotalDisplay').innerText);
+    const totalDiscount = parseFloat(document.getElementById('totalDiscountDisplay').innerText);
+    const total = parseFloat(document.getElementById('totalDisplay').innerText);
 
-    // Display invoice totals in the UI (replace this with your own UI update logic)
-    document.getElementById('subtotalDisplay').innerText = subtotal.toFixed(2);
-    document.getElementById('totalDiscountDisplay').innerText = totalDiscount.toFixed(2);
-    document.getElementById('totalDisplay').innerText = total.toFixed(2);
-}
+    billDetails += `\nSubtotal: ${subtotal} LKR\nTotal Discount: ${totalDiscount} LKR\nTotal: ${total} LKR\n\n`;
+    billDetails += 'Thank you, come again!\nCall us: 0912343564\nEmail: mosburgers@gmail.com';
 
-// Function to generate a PDF invoice and send it to customer's email
-function generateAndSendInvoice() {
-    // Generate PDF using jsPDF library (implement logic here)
-    // Example:
-    const doc = new jsPDF();
-    doc.text('Invoice', 20, 20);
-    doc.save('invoice.pdf');
-}
+    alert(billDetails);
+});
 
-// Event listener for item code input to update item details
-document.getElementById('billItemCode').addEventListener('input', function() {
-    const itemCode = this.value.trim();
-    const selectedItem = menuItems.find(item => item.code === itemCode);
+// Populate menu table on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const menuTable = document.getElementById('menuTable');
+    menuItems.forEach(item => {
+        const row = `<tr>
+            <td>${item.code}</td>
+            <td>${item.name}</td>
+            <td>${item.price.toFixed(2)}</td>
+            <td>${item.discount}</td>
+        </tr>`;
+        menuTable.innerHTML += row;
+    });
+});
 
-    if (selectedItem) {
-        document.getElementById('billItemName').value = selectedItem.name;
-        document.getElementById('billItemPrice').value = selectedItem.price.toFixed(2);
-        document.getElementById('billItemDiscount').value = selectedItem.discount !== '-' ? selectedItem.discount : '0%';
+// Event listener to autofill item details based on item code
+document.getElementById('billItemCode').addEventListener('input', () => {
+    const itemCode = document.getElementById('billItemCode').value;
+    const menuItem = menuItems.find(item => item.code === itemCode);
+
+    if (menuItem) {
+        document.getElementById('billItemName').value = menuItem.name;
+        document.getElementById('billItemPrice').value = menuItem.price.toFixed(2);
+        document.getElementById('billItemDiscount').value = menuItem.discount;
     } else {
         document.getElementById('billItemName').value = '';
         document.getElementById('billItemPrice').value = '';
         document.getElementById('billItemDiscount').value = '';
     }
-});
-// Define global variable to store items in the bill
-
-
-// Function to handle adding an item to the bill
-function addItemToBill() {
-    // Get item code entered by the user
-    const itemCode = document.getElementById('billItemCode').value.trim();
-
-    // Find the item in menuItems based on item code
-    const selectedItem = menuItems.find(item => item.code === itemCode);
-
-    if (!selectedItem) {
-        alert('Item not found. Please enter a valid item code.');
-        return;
-    }
-
-    // Add the selected item to the billItems array
-    billItems.push(selectedItem);
-
-    // Clear the item code input field
-    document.getElementById('billItemCode').value = '';
-
-    // Update the display of items in the bill
-    updateBillDisplay();
-
-    // Calculate and display invoice totals
-    calculateAndDisplayInvoice();
-}
-
-// Function to update the display of items in the bill
-function updateBillDisplay() {
-    const tableBody = document.getElementById('billItemsTable');
-    tableBody.innerHTML = ''; // Clear existing table content
-
-    // Iterate through billItems array and append rows to the table
-    billItems.forEach(item => {
-        const discount = item.discount !== '-' ? item.discount : '0%';
-        tableBody.insertAdjacentHTML('beforeend',
-            `<tr>
-                <td>${item.name}</td>
-                <td>${item.price.toFixed(2)}</td>
-                <td>1</td> <!-- Assuming quantity is 1 per item -->
-                <td>${discount}</td>
-            </tr>`
-        );
-    });
-}
-
-// Function to calculate and display invoice totals
-function calculateAndDisplayInvoice() {
-    // Calculate subtotal, discount, and total based on billItems array
-    let subtotal = 0;
-    let totalDiscount = 0;
-
-    billItems.forEach(item => {
-        subtotal += item.price;
-        if (item.discount !== '-') {
-            // Calculate discount amount
-            const discountPercent = parseFloat(item.discount.replace('%', ''));
-            totalDiscount += (item.price * discountPercent) / 100;
-        }
-    });
-
-    const total = subtotal - totalDiscount;
-
-    // Display invoice totals in the UI
-    document.getElementById('subtotalDisplay').innerText = subtotal.toFixed(2);
-    document.getElementById('totalDiscountDisplay').innerText = totalDiscount.toFixed(2);
-    document.getElementById('totalDisplay').innerText = total.toFixed(2);
-}
-
-// Function to generate and display the bill in an alert
-function displayBill() {
-    let billContent = '';
-
-    // Prepare bill content
-    billContent += '===========================\n';
-    billContent += '        MOS Burgers         \n';
-    billContent += '===========================\n\n';
-
-    billItems.forEach(item => {
-        const discount = item.discount !== '-' ? item.discount : '0%';
-        billContent += `${item.name}\n`;
-        billContent += `Price: ${item.price.toFixed(2)} LKR\n`;
-        billContent += `Discount: ${discount}\n`;
-        billContent += '\n';
-    });
-
-    billContent += '===========================\n';
-    billContent += `Subtotal: ${document.getElementById('subtotalDisplay').innerText}\n`;
-    billContent += `Total Discount: ${document.getElementById('totalDiscountDisplay').innerText}\n`;
-    billContent += `Total: ${document.getElementById('totalDisplay').innerText}\n\n`;
-    billContent += '===========================\n';
-    billContent += '       Thank You!         \n';
-    billContent += '===========================\n';
-
-    // Display bill in an alert
-    alert(billContent);
-}
-
-// Function to generate a PDF invoice and send it to customer's email
-function generateAndSendInvoice() {
-    // Generate PDF using jsPDF library (implement logic here)
-    const doc = new jsPDF();
-
-    // Header
-    doc.setFontSize(18);
-    doc.text('MOS Burgers Invoice', 20, 20);
-
-    // Body
-    let startY = 30;
-    billItems.forEach((item, index) => {
-        const discount = item.discount !== '-' ? item.discount : '0%';
-        const itemString = `${item.name} - ${item.price.toFixed(2)} LKR - Discount: ${discount}`;
-        doc.text(itemString, 20, startY + index * 10);
-    });
-
-    // Footer
-    const subtotal = document.getElementById('subtotalDisplay').innerText;
-    const totalDiscount = document.getElementById('totalDiscountDisplay').innerText;
-    const total = document.getElementById('totalDisplay').innerText;
-
-    doc.text(`Subtotal: ${subtotal} LKR`, 20, startY + (billItems.length + 1) * 10);
-    doc.text(`Total Discount: ${totalDiscount} LKR`, 20, startY + (billItems.length + 2) * 10);
-    doc.text(`Total: ${total} LKR`, 20, startY + (billItems.length + 3) * 10);
-
-    // Save PDF
-    doc.save('invoice.pdf');
-}
-
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Add event listener for Print Bill button
-    document.getElementById('displayBill').addEventListener('click', displayBill);
 });
